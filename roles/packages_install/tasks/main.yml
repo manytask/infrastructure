@@ -1,0 +1,41 @@
+---
+
+- name: Update package cache
+  block:
+    - name: Update apt cache (Ubuntu/Debian)
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+        upgrade: safe
+        autoremove: true
+      become: true
+      when: ansible_os_family == 'Debian'
+    - name: Update yum cache (CentOS/RHEL)
+      ansible.builtin.yum:
+        name: '*'
+        state: latest
+        update_cache: yes
+      become: true
+      when: ansible_os_family == 'RedHat'
+
+- name: Install necessary packages
+  block:
+    - name: Install packages (Ubuntu/Debian)
+      ansible.builtin.apt:
+        name: "{{ packages_install_list }}"
+        state: present
+      become: true
+      when: ansible_os_family == 'Debian'
+
+    - name: Install packages (CentOS/RHEL)
+      ansible.builtin.yum:
+        name: "{{ packages_install_list }}"
+        state: present
+      become: true
+      when: ansible_os_family == 'RedHat'
+
+    - name: Install packages (macOS)
+      ansible.builtin.homebrew:
+          name: "{{ packages_install_list }}"
+          state: present
+      when: ansible_os_family == 'Darwin'

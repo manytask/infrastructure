@@ -1,0 +1,21 @@
+---
+- name: Configure GitLab Server host
+  hosts: gitlab
+
+
+  vars_files:
+    - ../vars/main.yml
+
+
+  roles:
+    - role: packages_install
+      packages_install_list: "{{ default_packages_to_install }}"
+      become: true
+    - role: hifis.unattended_upgrades
+      unattended_automatic_reboot_time: 04:00  # noqa: var-naming[no-role-prefix]
+      become: true
+    - role: geerlingguy.security
+      security_ssh_port: "22"
+      become: true
+    - role: debops.gitlab
+      # TODO: configure gitlab https://github.com/debops/debops-playbooks/blob/master/playbooks/common.yml

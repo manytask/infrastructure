@@ -1,0 +1,15 @@
+exclude_paths:
+  - .github/
+  - .cache/  # implicit unless exclude_paths is defined in config
+  - roles/*.*  # downloaded roles
+
+warn_list:
+  - skip_this_tag
+  - experimental  # experimental is included in the implicit list
+  - yaml[comments-indentation]
+
+skip_list:
+  - yaml[document-start]
+  - yaml[indentation]
+
+offline: false

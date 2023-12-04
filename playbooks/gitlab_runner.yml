@@ -1,0 +1,43 @@
+---
+- name: Configure GitLab Runner host
+  hosts: gitlab_runner
+
+
+  vars_files:
+    - ../vars/main.yml
+
+
+  pre_tasks:
+    - name: HOTFIX - allow gitlab-runner role to make "dpkg_selections"
+      ansible.builtin.shell: |
+        curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | sudo bash
+        sudo dpkg --configure -a
+      become: true
+      changed_when: false
+
+
+  roles:
+    - role: packages_install
+      packages_install_list: "{{ default_packages_to_install }}"
+      become: true
+    - role: hifis.unattended_upgrades
+      unattended_automatic_reboot_time: 04:00  # noqa: var-naming[no-role-prefix]
+      become: true
+    - role: geerlingguy.security
+      security_ssh_port: "22"
+      become: true
+    - role: geerlingguy.docker
+      become: true
+    - role: riemers.ansible-gitlab-runner
+
+
+  tasks:
+    - name: Setup cron to clean docker images
+      ansible.builtin.cron:
+        name: "Clean docker images"
+        minute: "0"
+        hour: "3"
+        job: "docker system prune -a -f"
+        cron_file: "clean_docker_images"
+        user: root
+      become: true

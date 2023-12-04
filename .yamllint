@@ -1,0 +1,21 @@
+---
+extends: default
+
+
+rules:
+  line-length:
+    max: 180
+    level: warning
+
+  indentation:
+    spaces: 2
+    level: warning
+
+  comments-indentation: disable
+  document-start: disable
+
+
+ignore: |
+  .github/*
+  .venv/*
+  roles/*.*

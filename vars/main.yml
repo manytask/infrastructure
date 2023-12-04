@@ -1,0 +1,41 @@
+
+
+default_packages_to_install:
+  - build-essential
+  - zsh
+  - curl
+  - cron
+  - htop
+  - git
+  - git-lfs
+  - tar
+  - gzip
+  - nano
+
+
+github_runner_config_url: https://github.com/manytask/course-template
+github_runner_config_token: 'TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO'
+github_runner_config_labels: ["self-hosted"]
+
+
+gitlab_runner_coordinator_url: https://gitlab.com
+gitlab_runner_registration_token: 'TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO'
+gitlab_runner_runners:
+  - name: 'Example Docker GitLab Runner'
+    executor: docker
+    docker_privileged: false  # TODO: check if privileged is needed
+    docker_image: 'alpine'
+    tags: ['shared']
+    docker_volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "/cache"
+    concurrent_specific: 2
+    extra_registration_option: '--maximum-timeout=1800'  # in seconds
+    extra_configs:
+      runners.docker:
+        memory: "1g"
+        cpus: "2"
+        oom_kill_disable: false
+        shm_size: 0
+        pull_policy: "always"
+        allowed_images: ["registry.gitlab.com/manytask/test/course-template-test-public/*:*"]
