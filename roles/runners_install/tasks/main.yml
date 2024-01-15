@@ -1,0 +1,10 @@
+---
+- name: "Create runner on Gilab instance"
+  delegate_to: localhost
+  import_tasks: runner_create.yml
+
+- name: Install runner on the host and configure it
+  become: yes
+  become_method: sudo
+  import_tasks: runner_install.yml
+

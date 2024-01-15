@@ -1,0 +1,12 @@
+gcp_cred_kind: serviceaccount
+gcp_cred_file: "../secure/service.json"
+gcp_zone: europe-west1-b
+machine_spec: n2
+machine_cpu: 4
+machine_ram: 8192
+source_image: "projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts"
+disk_type: "pd-balanced"
+disk_size: 160
+vm_tags: { items: ["http-server", "https-server"] }
+scopes:
+  - "https://www.googleapis.com/auth/compute"

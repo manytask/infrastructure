@@ -1,0 +1,32 @@
+---
+
+- name: "Get oauth token from https://{{ gitlab_hostname }}/oauth/token"
+  uri:
+    url: "https://{{ gitlab_hostname }}/oauth/token?grant_type=password&username=root&password={{ gitlab_root_password }}"
+    method: POST
+    return_content: yes
+    status_code: 200
+    body_format: json
+    validate_certs: yes
+  register: token
+
+- name: Create runner on GitLab instance
+  uri:
+    url: "https://{{ gitlab_hostname }}/api/v4/user/runners"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ token.json.access_token }}"
+    body_format: json
+    body:
+      runner_type: "instance_type"
+      description: "Default runner for this instance."
+      run_untagged: true
+    status_code: [ 201 ] # 201 is created, 409 is already exists; makes idempotent
+    validate_certs: yes
+  register: runner_token
+
+- name: Runner Token Print
+  debug:
+    msg: "{{ runner_token.json.token }}"
+  tags:
+    - logging

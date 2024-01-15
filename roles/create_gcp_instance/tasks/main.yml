@@ -1,0 +1,63 @@
+---
+
+- name: Create a GCP instance
+  google.cloud.gcp_compute_instance:
+    state: present
+    project: "{{ gcp_project | mandatory }}"
+    auth_kind: "{{ gcp_cred_kind }}"
+    service_account_file: "{{ gcp_cred_file }}"
+    zone: "{{ gcp_zone }}"
+    name: "{{ instance_name | mandatory }}"
+    machine_type: "{{ machine_spec }}-custom-{{ machine_cpu }}-{{ machine_ram }}"
+    disks:
+      - auto_delete: true
+        boot: true
+        initialize_params:
+          source_image: "{{ source_image }}"
+          disk_type: "{{ disk_type }}"
+          disk_size_gb: "{{ disk_size }}"
+    network_interfaces:
+      - access_configs:
+          - name: External NAT
+            network_tier: "STANDARD"
+            nat_ip: "{{ instance_address | default(omit) }}"
+            type: ONE_TO_ONE_NAT
+    tags: "{{ vm_tags }}"
+    shielded_instance_config:
+      enable_secure_boot: false
+      enable_vtpm: true
+      enable_integrity_monitoring: true
+    scheduling:
+      preemptible: false
+      automatic_restart: true
+      on_host_maintenance: "MIGRATE"
+    service_accounts:
+      - email: "{{ service_account_email | mandatory }}"
+        scopes: "{{ scopes }}"
+  register: gcp_vm_server
+
+- name: Set global_nat_ip for access in other roles or playbooks
+  set_fact:
+    global_nat_ip: "{{ gcp_vm_server.networkInterfaces[0].accessConfigs[0].natIP }}"
+
+  when: gcp_vm_server.networkInterfaces is defined and 
+        gcp_vm_server.networkInterfaces | length > 0 and
+        gcp_vm_server.networkInterfaces[0].accessConfigs is defined and
+        gcp_vm_server.networkInterfaces[0].accessConfigs | length > 0
+
+- name: Current IP for {{ instance_name }}
+  debug:
+    msg: "{{ global_nat_ip }}"
+
+- name: Wait for SSH to be available
+  wait_for:
+    host: "{{ global_nat_ip }}"
+    port: 22
+    delay: 10
+    timeout: 300
+
+- name: Add SSH key to known hosts
+  known_hosts:
+    name: "{{ global_nat_ip }}"
+    key: "{{ lookup('pipe', 'ssh-keyscan -t rsa ' + global_nat_ip) }}"
+    state: present

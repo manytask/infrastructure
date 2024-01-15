@@ -1,0 +1,10 @@
+---
+- name: Install and Configure Postfix for GitLab Server
+  become: yes
+  become_method: sudo
+  import_tasks: postfix_setup.yml
+
+- name: Install GitLab on gitlab-server
+  become: yes
+  become_method: sudo
+  import_tasks: gitlab_setup.yml

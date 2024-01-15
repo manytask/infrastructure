@@ -6,16 +6,6 @@
   vars_files:
     - ../vars/main.yml
 
-
-  pre_tasks:
-    - name: HOTFIX - allow gitlab-runner role to make "dpkg_selections"
-      ansible.builtin.shell: |
-        curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | sudo bash
-        sudo dpkg --configure -a
-      become: true
-      changed_when: false
-
-
   roles:
     - role: packages_install
       packages_install_list: "{{ default_packages_to_install }}"
@@ -28,7 +18,7 @@
       become: true
     - role: geerlingguy.docker
       become: true
-    - role: riemers.ansible-gitlab-runner
+    - role: runners_install
 
 
   tasks:

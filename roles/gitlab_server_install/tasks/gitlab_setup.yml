@@ -1,0 +1,68 @@
+---
+- name: Add GitLab repository
+  ansible.builtin.shell: |
+    curl -sS https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.deb.sh | sudo bash
+  args:
+    executable: /bin/bash
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+- name: Install GitLab CE
+  ansible.builtin.shell: |
+    apt update
+    apt install gitlab-ce -y |& tee /tmp/gitlab_install.log
+  args:
+    executable: /bin/bash
+  environment:
+    EXTERNAL_URL: "{{ (gitlab_hostname is defined) | ternary('https://', 'http://') }}{{ gitlab_hostname | default(inventory_hostname) }}"
+    DEBIAN_FRONTEND: noninteractive
+  register: gitlab_install
+
+- name: Fetch GitLab install log
+  ansible.builtin.fetch:
+    src: /tmp/gitlab_install.log
+    dest: "{{ playbook_dir }}/gitlab_install_logs/"
+    flat: yes
+  tags:
+    - logging
+
+- name: Copy GitLab configuration file to temporary location
+  ansible.builtin.command:
+    cmd: cp /etc/gitlab/gitlab.rb /tmp/temp_gitlab.rb
+  register: copy_gitlab_config
+  tags:
+    - logging
+
+- name: Change permissions of temporary GitLab configuration file
+  ansible.builtin.file:
+    path: /tmp/temp_gitlab.rb
+    mode: '0644'
+  when: copy_gitlab_config is changed
+  tags:
+    - logging
+
+- name: Fetch GitLab configuration file from temporary location
+  ansible.builtin.fetch:
+    src: /tmp/temp_gitlab.rb
+    dest: "{{ playbook_dir }}/gitlab_config_files/"
+    flat: yes
+  tags:
+    - logging
+
+- name: Set new root password
+  ansible.builtin.shell: |
+    sudo gitlab-rails runner "user = User.where(id{{ ':' }} 1).first; user.password = '{{ gitlab_root_password }}'; user.password_confirmation = '{{ gitlab_root_password }}'; user.save!"
+  args:
+    executable: /bin/bash
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+- name: Restart GitLab
+  ansible.builtin.command:
+    cmd: gitlab-ctl restart
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+- name: Wait for GitLab to restart
+  pause:
+    minutes: 2
