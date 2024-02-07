@@ -32,5 +32,5 @@
         user: root
       become: true
 
-  - name: Setup web servers
+    - name: Setup web servers
     # TODO: add web servers

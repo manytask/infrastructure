@@ -17,5 +17,4 @@
     - role: geerlingguy.security
       security_ssh_port: "22"
       become: true
-    - role: debops.gitlab
-      # TODO: configure gitlab https://github.com/debops/debops-playbooks/blob/master/playbooks/common.yml
+    - role: gitlab_server_install

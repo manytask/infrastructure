@@ -1,0 +1,14 @@
+[[runners]]
+  [runners.docker]
+    tls_verify = false
+    memory = "{{ gitlab_runner_docker_memory }}"
+    cpus = "{{ gitlab_runner_docker_cpu }}"
+    cap_add = ["SYS_ADMIN"]
+    privileged = {{ gitlab_runner_docker_privileged | lower }}
+    disable_entrypoint_overwrite = false
+    oom_kill_disable = false
+    disable_cache = false
+    volumes = [{% for volume in gitlab_runner_docker_volumes %}"{{ volume }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+    allowed_images = [{% for image in gitlab_runner_allowed_images %}"{{ image }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+    pull_policy = ["always"]
+    shm_size = 0

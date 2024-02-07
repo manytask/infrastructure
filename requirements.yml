@@ -3,4 +3,3 @@ roles:
   - geerlingguy.security
   - geerlingguy.docker
   - macunha1.github_actions_runner
-  - riemers.ansible-gitlab-runner

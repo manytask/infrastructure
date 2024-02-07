@@ -1,0 +1,92 @@
+---
+# ==================================================
+- name: Create GCP VM for Gitlab
+  hosts: localhost
+
+  vars_files:
+    - ../vars/main.yml
+  tags:
+    - "gitlab-server-vm"
+    - "gitlab-install"
+
+  roles:
+    - role: create_gcp_instance
+      instance_name: "server"
+      instance_address: "{{ gitlab_server_ip | default(omit) }}"
+      machine_ram: 16384
+
+  tasks:
+    - name: "Record runner server's IP"
+      add_host:
+        name: "{{ global_nat_ip }}"
+        groups: "gitlab_ip"
+
+
+# ==================================================
+- name: Create GCP VM for Gitlab's runners
+  hosts: localhost
+
+  vars_files:
+    - ../vars/main.yml
+  tags:
+    - "gitlab-runners-vm"
+    - "gitlab-runners-install"
+
+  roles:
+    - role: create_gcp_instance
+      instance_name: "runners"
+      instance_address: "{{ gitlab_runner_server_ip | default(omit) }}"
+      machine_ram: 8192
+
+  tasks:
+    - name: "Record runner server's IP"
+      add_host:
+        name: "{{ global_nat_ip }}"
+        groups: "runners_ip"
+
+# ==================================================
+- name: Configure GitLab Server host
+  hosts: gitlab_ip
+
+  vars_files:
+    - ../vars/main.yml
+
+  tags:
+    - "gitlab-install"
+
+  roles:
+    - role: packages_install
+      packages_install_list: "{{ default_packages_to_install }}"
+      become: true
+    - role: hifis.unattended_upgrades
+      unattended_automatic_reboot_time: 04:00  # noqa: var-naming[no-role-prefix]
+      become: true
+    - role: geerlingguy.security
+      security_ssh_port: "22"
+      become: true
+    - role: gitlab_server_install
+
+# ==================================================
+- name: Configure GitLab runners Server host
+  hosts: runners_ip
+#  hosts: gitlab_runner
+
+  vars_files:
+    - ../vars/main.yml
+
+  tags:
+    - "gitlab-runners-install"
+
+  roles:
+    - role: packages_install
+      packages_install_list: "{{ default_packages_to_install }}"
+      become: true
+    - role: hifis.unattended_upgrades
+      unattended_automatic_reboot_time: 04:00  # noqa: var-naming[no-role-prefix]
+      become: true
+    - role: geerlingguy.security
+      security_ssh_port: "22"
+      become: true
+    - role: geerlingguy.docker
+      become: true
+    - role: runners_install

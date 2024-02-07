@@ -1,0 +1,32 @@
+---
+
+- name: Add Gitlab runner repository
+  ansible.builtin.shell: |
+    curl -sS https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh | sudo bash
+  args:
+    executable: /bin/bash
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+- name: Install GitLab Runner
+  ansible.builtin.apt:
+    name: gitlab-runner
+    update_cache: yes
+    state: present
+
+- name: Create Runner config template
+  template:
+    src: gitlab-runner-config.toml.j2
+    dest: /tmp/runner-config.toml
+
+- name: Register GitLab Runner
+  ansible.builtin.shell: >
+    gitlab-runner register --non-interactive
+    --url "https://{{ gitlab_hostname }}/"
+    --token "{{ runner_token.json.token }}"
+    --executor "docker"
+    --docker-image "docker:latest"
+    --description "docker-runner"
+    --request-concurrency {{ gitlab_runner_concurrent_specific }}
+  environment:
+    TEMPLATE_CONFIG_FILE: /tmp/runner-config.toml

@@ -1,0 +1,20 @@
+---
+- name: Update package cache
+  apt:
+    update_cache: yes
+  changed_when: false
+
+- name: Install Postfix
+  apt:
+    name: postfix
+    state: present
+
+- name: Set Postfix main mailer type
+  debconf:
+    name: postfix
+    question: "postfix/main_mailer_type"
+    value: "Internet Site"
+    vtype: "string"
+  with_items:
+    - "{{ gitlab_hostname | default(inventory_hostname) }}"
+  notify: Restart Postfix

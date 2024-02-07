@@ -12,30 +12,26 @@ default_packages_to_install:
   - gzip
   - nano
 
+gcp_project: "YOUR_GCP_PROJECT_NAME"
+service_account_email: "YOUR_SERVICE_ACCOUNT_EMAIL"
+
+#Password must not contain commonly used combinations of words and letters
+gitlab_root_password: "ROOT_PASSWORD_YOU_WANT"
+gitlab_hostname: "GITLAB_HOSTNAME"
+
+#gitlab_server_ip: { address: "YOUR_GITLAB_SERVER_IP" }
+#gitlab_runner_server_ip: { address: "YOUR_GITLAB_RUNNER_SERVER_IP" }
 
 github_runner_config_url: https://github.com/manytask/course-template
 github_runner_config_token: 'TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO'
 github_runner_config_labels: ["self-hosted"]
 
 
-gitlab_runner_coordinator_url: https://gitlab.com
-gitlab_runner_registration_token: 'TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO-TODO'
-gitlab_runner_runners:
-  - name: 'Example Docker GitLab Runner'
-    executor: docker
-    docker_privileged: false  # TODO: check if privileged is needed
-    docker_image: 'alpine'
-    tags: ['shared']
-    docker_volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-      - "/cache"
-    concurrent_specific: 2
-    extra_registration_option: '--maximum-timeout=1800'  # in seconds
-    extra_configs:
-      runners.docker:
-        memory: "1g"
-        cpus: "2"
-        oom_kill_disable: false
-        shm_size: 0
-        pull_policy: "always"
-        allowed_images: ["registry.gitlab.com/manytask/test/course-template-test-public/*:*"]
+gitlab_runner_docker_privileged: true  # TODO: check if privileged is needed
+gitlab_runner_docker_memory: "3g"
+gitlab_runner_docker_cpu: "2"
+gitlab_runner_docker_image: 'docker:latest'
+gitlab_runner_docker_volumes: ["/var/run/docker.sock:/var/run/docker.sock", "/cache"]
+gitlab_runner_allowed_images: ["YOUR_GHCR_IO_FORMATED_REPO_WITH_DOCKER_IMAGES"]
+gitlab_runner_pull_policy: "always"
+gitlab_runner_concurrent_specific: 2
